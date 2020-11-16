@@ -46,9 +46,11 @@ public class Weapon : MonoBehaviour {
     public GameObject collar;
     public float lastShotTime; // Time last shot was fired
     private Renderer collarRend;
+    public float ProjectileBrithTime;
 
     private void Start()
     {
+        ProjectileBrithTime = Time.time;
         collar = transform.Find("Collar").gameObject;
         collarRend = collar.GetComponent<Renderer>();
 
@@ -130,6 +132,10 @@ public class Weapon : MonoBehaviour {
                 p = MakeProjectile(); // Make left Projectile
                 p.transform.rotation = Quaternion.AngleAxis(-10, Vector3.back);
                 p.rigid.velocity = p.transform.rotation * vel;
+                break; 
+
+            case WeaponType.phaser:
+                p = MakeProjectilePhaser();
                 break;
         }
     }
@@ -154,4 +160,26 @@ public class Weapon : MonoBehaviour {
         lastShotTime = Time.time;
         return p;
     }
+
+    public Projectile MakeProjectilePhaser()
+    {
+        GameObject go = Instantiate<GameObject>(def.projectilePrefab);
+        if (transform.parent.gameObject.tag == "Hero")
+        {
+            go.tag = "ProjectilePhaser";
+            go.layer = LayerMask.NameToLayer("ProjectileHero");
+        }
+        else
+        {
+            go.tag = "ProjectileEnemy";
+            go.layer = LayerMask.NameToLayer("ProjectileEnemy");
+        }
+        go.transform.position = collar.transform.position;
+        go.transform.SetParent(PROJECTILE_ANCHOR, true);
+        Projectile p = go.GetComponent<Projectile>();
+        p.type = type;
+        lastShotTime = Time.time;
+        return p;
+    }
 }
+

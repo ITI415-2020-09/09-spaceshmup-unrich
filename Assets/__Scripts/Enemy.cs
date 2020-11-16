@@ -72,9 +72,11 @@ public class Enemy : MonoBehaviour {
     private void OnCollisionEnter(Collision coll)
     {
         GameObject otherGO = coll.gameObject;
+        Debug.Log("Collision"+otherGO.tag);
         switch (otherGO.tag)
         {
             case "ProjectileHero":
+            case "ProjectilePhaser":
                 Projectile p = otherGO.GetComponent<Projectile>();
                 // If this Enemy is off screen, don't damage it.
                 if (!bndCheck.isOnScreen)
@@ -82,6 +84,7 @@ public class Enemy : MonoBehaviour {
                     Destroy(otherGO);
                     break;
                 }
+          
 
                 // Hurt this Enemy
                 ShowDamage();
@@ -104,6 +107,34 @@ public class Enemy : MonoBehaviour {
             default:
                 print("Enemy hit by non-ProjectileHero: " + otherGO.name);
                 break;
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        GameObject otherGO = other.gameObject;
+        if (other.gameObject.CompareTag("ProjectilePhaser"))
+        {
+            Projectile p = otherGO.GetComponent<Projectile>();
+            if (!bndCheck.isOnScreen)
+            {
+                Destroy(otherGO);
+            }
+            Destroy(other.gameObject);
+            ShowDamage();
+            health -= Main.GetWeaponDefinition(p.type).damageOnHit;
+            if (health <= 0)
+            {
+                // Tell the Main singleton that this ship was destroyed
+                if (!notifiedOfDestruction)
+                {
+                    Main.S.ShipDestroyed(this);
+                }
+                notifiedOfDestruction = true;
+                // Destroy this enemy
+                Destroy(this.gameObject);
+            }
+            Destroy(otherGO);
         }
     }
 
